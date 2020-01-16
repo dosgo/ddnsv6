@@ -17,7 +17,7 @@ func main(){
 		return ;
 	}
 	dnspodClent:=dnspod.DnsPod{Token:dnsPodToken}
-	err:=dnspodClent.Modify("16v16.com","2408:805f:e220:","wifi6","AAAA");
+	err:=dnspodClent.Modify("xxx.com","2408:805f:e220:","ddd6","AAAA");
 
 	fmt.Printf("err:%#v\r\n",err)
 
