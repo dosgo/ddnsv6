@@ -5,6 +5,7 @@ import (
 	"ddnsv6/iptool"
 	"flag"
 	"fmt"
+	"time"
 )
 var dnsPodToken string;
 var domain string;
@@ -27,7 +28,18 @@ func main(){
 		fmt.Printf("domain null")
 		return ;
 	}
+	fmt.Printf("dnspodtoken:%s\r\n",dnsPodToken)
+	fmt.Printf("domain:%s\r\n",domain)
+	fmt.Printf("subdomain:%s\r\n",subDomain)
+	fmt.Printf("iptype:%d\r\n",iptype)
+	for {
+		checkIpUpdate();
+		time.Sleep(5*time.Minute);
+	}
+}
 
+func checkIpUpdate(){
+	fmt.Printf("checkIpUpdateing....\r\n");
 	if(iptype==4&&iptype==0){
 		ipv4,errv4:=iptool.GetPublicIP(4);
 		if(errv4==nil&&len(ipv4)>0){
@@ -46,7 +58,5 @@ func main(){
 			fmt.Printf("err:%#v\r\n",err)
 		}
 	}
-
 }
-
 
