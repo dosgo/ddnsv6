@@ -2,6 +2,7 @@ package dnspod
 
 import (
 	"bytes"
+	"ddnsv6/iptool"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -171,4 +172,24 @@ func (dp *DnsPod) Modify(domain string,value string,sub_domain string,record_typ
 	return nil;
 }
 
+
+func (dp *DnsPod) DdnsUpdate(iptype int,domain string,subDomain string){
+	fmt.Printf("checkIpUpdateing....\r\n");
+	if(iptype==4||iptype==0){
+		ipv4,errv4:=iptool.GetPublicIP(4);
+		if(errv4==nil&&len(ipv4)>0){
+			fmt.Printf("find ipv4 address")
+			err:=dp.Modify(domain,ipv4,subDomain,"A");
+			fmt.Printf("err:%#v\r\n",err)
+		}
+	}
+	if(iptype==6||iptype==0){
+		ipv6,errv6:=iptool.GetPublicIP(6);
+		if(errv6==nil&&len(ipv6)>0){
+			fmt.Printf("find ipv6 address")
+			err:=dp.Modify(domain,ipv6,subDomain,"AAAA");
+			fmt.Printf("err:%#v\r\n",err)
+		}
+	}
+}
 
