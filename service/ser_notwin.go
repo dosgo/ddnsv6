@@ -4,6 +4,7 @@ package service
 
 import (
 	"fmt"
+	"ddnsv6/param"
 )
 
 func StartWin(){
