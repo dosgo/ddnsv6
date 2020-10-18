@@ -28,9 +28,10 @@ func main(){
 	//运行服务
 	if(runtime.GOOS=="windows") {
 		service.StartWin();
+	}else {
+		//运行
+		service.StartServer()
 	}
-	//运行
-	service.StartServer()
 }
 
 
