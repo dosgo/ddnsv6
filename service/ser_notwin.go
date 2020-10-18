@@ -7,5 +7,5 @@ import (
 )
 
 func StartWin(){
-	fmt.Printf("cmd:%s\r\n",cmd)
+	fmt.Printf("cmd:%s\r\n",param.Cmd)
 }
