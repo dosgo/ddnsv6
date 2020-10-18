@@ -6,6 +6,6 @@ import (
 	"fmt"
 )
 
-func StartWin(cmd string){
+func StartWin(){
 	fmt.Printf("cmd:%s\r\n",cmd)
 }
