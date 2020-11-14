@@ -1,9 +1,9 @@
 package main
 
 import (
+	"ddnsv6/param"
 	"ddnsv6/service"
 	"fmt"
-	"ddnsv6/param"
 	"runtime"
 )
 
