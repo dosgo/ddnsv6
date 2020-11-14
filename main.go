@@ -23,8 +23,7 @@ func main(){
 	fmt.Printf("domain:%s\r\n",param.Domain)
 	fmt.Printf("subdomain:%s\r\n",param.SubDomain)
 	fmt.Printf("iptype:%d\r\n",param.Iptype)
-
-
+	
 	//运行服务
 	if(runtime.GOOS=="windows") {
 		service.StartWin();

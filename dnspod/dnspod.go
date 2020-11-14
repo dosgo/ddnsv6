@@ -44,7 +44,6 @@ func (dp *DnsPod) post(cmd string, params map[string]interface{}) ([]byte, error
 	}
 	client := http.DefaultClient
 	//access_token在url中，内容在request body中
-	fmt.Printf("pastr:%s\r\n",paramStr.Encode())
 	resp, err := client.Post(api+cmd, "application/x-www-form-urlencoded", bytes.NewReader([]byte(paramStr.Encode())))
 	if err != nil {
 		return nil,err;
@@ -180,7 +179,7 @@ func (dp *DnsPod) DdnsUpdate(iptype int,domain string,subDomain string){
 	if(iptype==4||iptype==0){
 		ipv4,errv4:=iptool.GetPublicIP(4);
 		if(errv4==nil&&len(ipv4)>0){
-			fmt.Printf("find ipv4 address")
+			fmt.Printf("find ipv4 address :%s\r\n",ipv4)
 			if(dp.CheckIP(4,ipv4,domain,subDomain)==false) {
 				err := dp.Modify(domain, ipv4, subDomain, "A");
 				fmt.Printf("err:%#v\r\n",err)
@@ -192,7 +191,7 @@ func (dp *DnsPod) DdnsUpdate(iptype int,domain string,subDomain string){
 	if(iptype==6||iptype==0){
 		ipv6,errv6:=iptool.GetPublicIP(6);
 		if(errv6==nil&&len(ipv6)>0){
-			fmt.Printf("find ipv6 address")
+			fmt.Printf("find ipv6 address :%s\r\n",ipv6)
 			//Modify  update
 			if(dp.CheckIP(6,ipv6,domain,subDomain)==false) {
 				err := dp.Modify(domain, ipv6, subDomain, "AAAA");
