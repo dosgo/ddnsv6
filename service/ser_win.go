@@ -11,12 +11,12 @@ import (
 	"path/filepath"
 )
 
-func StartWin(){
+func StartWin() bool{
 	if !winsvc.IsAnInteractiveSession() {
 		if err := winsvc.RunAsService("ddnsv6", StartServer, StopServer, false); err != nil {
 			fmt.Printf("service run err:%s\r\n",err.Error())
 		}
-		return
+		return true
 	}else{
 		if(len(param.Cmd)>0){
 			switch (param.Cmd) {
@@ -27,7 +27,7 @@ func StartWin(){
 				}else{
 					fmt.Printf("install fail err:"+err.Error()+"\r\n")
 				}
-				break;
+				return true
 			case "uninstall":
 				err:=UnInstall();
 				if(err==nil){
@@ -35,11 +35,13 @@ func StartWin(){
 				}else{
 					fmt.Printf("uninstall fail err:"+err.Error()+"\r\n")
 				}
-				break;
+				return true
 			}
 		}
-		return ;
 	}
+	// run as normal
+	StartServer()
+	return false;
 }
 
 /*install server*/
