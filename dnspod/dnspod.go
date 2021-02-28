@@ -1,15 +1,15 @@
 package dnspod
 
 import (
-	"bytes"
+	"crypto/tls"
 	"ddnsv6/iptool"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
-	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -19,7 +19,6 @@ type DnsPod struct {
 }
 
 var  api string="https://dnsapi.cn/";
-
 
 func (dp *DnsPod) GetRecord(domain string,record_type string,sub_domain string) ( map[string]interface{}, error){
 	var params=make(map[string]interface{})
@@ -36,24 +35,96 @@ func (dp *DnsPod) GetRecord(domain string,record_type string,sub_domain string) 
 
 
 func (dp *DnsPod) post(cmd string, params map[string]interface{}) ([]byte, error) {
+	return dp.postv2(cmd,params);
+}
+
+/*Not using the http library is to reduce the size, because it needs to run in embedded
+*/
+func (dp *DnsPod) postv2( cmd string, params map[string]interface{}) ([]byte, error){
 	params["format"]="json";
 	params["login_token"]=dp.Token;
+	urlStr:=api+cmd
+	uInfo,err:=url.Parse(urlStr);
+	if err!=nil {
+		return nil,err;
+	}
+	var host=uInfo.Host;
+	var path="/";
+	var query="";
+	var port="";
+	if strings.HasPrefix(urlStr,"http://"){
+		port="80"
+	}else{
+		port="443"
+	}
+	if(uInfo.Path!=""){
+		path=path+uInfo.Path
+	}
+	if(uInfo.Query()!=nil){
+		query="?"+uInfo.Query().Encode()
+	}
+	if(uInfo.Port()!=""){
+		port=uInfo.Port()
+	}
+
+	// making string from $data
 	var paramStr = url.Values{}
 	for k, v := range params {
 		paramStr.Add(k,v.(string))
 	}
-	client := http.DefaultClient
-	//access_token在url中，内容在request body中
-	resp, err := client.Post(api+cmd, "application/x-www-form-urlencoded", bytes.NewReader([]byte(paramStr.Encode())))
-	if err != nil {
+
+
+	// building POST-request:
+	request:="POST "+path+query+" HTTP/1.1\n";
+	request+="Host: "+host+"\n";
+	request+="Content-type: application/x-www-form-urlencoded\n";
+	request+="Content-length: "+strconv.Itoa(len(paramStr.Encode()))+"\n";
+	request+="Connection: close\n";
+	request+="\n";
+	request+=paramStr.Encode()+"\n";
+
+	var fp net.Conn;
+	if strings.HasPrefix(urlStr,"http://"){
+		fp, err = net.Dial("tcp", host+":"+port)
+	}else{
+		fp, err = tls.Dial("tcp", host+":"+port, nil)
+	}
+	if(err!=nil){
 		return nil,err;
 	}
-	defer resp.Body.Close()
-	result, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
+	fp.Write([]byte(request))
+	var result []byte;
+	result,err=ioutil.ReadAll(fp)
+	if err!=nil {
 		return nil,err;
+	}else{
+		res := strings.Split(string(result),"\r\n\r\n")
+		var TransferEncoding="";
+		headers:=strings.Split(res[0],"\n");
+		for _, v:= range headers {
+		   if(strings.HasPrefix(strings.ToLower(v),strings.ToLower("Transfer-Encoding"))){
+			  _header:=strings.Split(v,":")
+			   TransferEncoding=_header[1];
+		   }
+		}
+		if strings.Index(TransferEncoding,"chunked")!=-1 {
+			bodys:=strings.Split(res[1],"\n")
+			var i=0;
+			var body="";
+			for _, v:= range bodys {
+				if(i==0||i==len(bodys)-1){
+					i++
+					continue;
+				}
+				body=body+v;
+				i++;
+			}
+			return []byte(body),err;
+
+		}else{
+			return []byte(res[1]),err;
+		}
 	}
-	return result,nil
 }
 
 func (dp *DnsPod) Ddns(domain string,value string,sub_domain string,record_type string) (error) {
