@@ -58,7 +58,7 @@ func (dp *DnsPod) postv2( cmd string, params map[string]interface{}) ([]byte, er
 		port="443"
 	}
 	if(uInfo.Path!=""){
-		path=path+uInfo.Path
+		path=uInfo.Path
 	}
 	if(uInfo.Query()!=nil){
 		query="?"+uInfo.Query().Encode()
@@ -83,11 +83,16 @@ func (dp *DnsPod) postv2( cmd string, params map[string]interface{}) ([]byte, er
 	request+="\n";
 	request+=paramStr.Encode()+"\n";
 
+
+
 	var fp net.Conn;
 	if strings.HasPrefix(urlStr,"http://"){
 		fp, err = net.Dial("tcp", host+":"+port)
 	}else{
-		fp, err = tls.Dial("tcp", host+":"+port, nil)
+		tlsConf := &tls.Config{
+			InsecureSkipVerify: true,
+		}
+		fp, err = tls.Dial("tcp", host+":"+port, tlsConf)
 	}
 	if(err!=nil){
 		return nil,err;
@@ -130,6 +135,7 @@ func (dp *DnsPod) postv2( cmd string, params map[string]interface{}) ([]byte, er
 func (dp *DnsPod) Ddns(domain string,value string,sub_domain string,record_type string) (error) {
 	res,err:=dp.GetRecord(domain,record_type,sub_domain);
 	if(err!=nil){
+		fmt.Printf("GetRecord error\r\n")
 		return err;
 	}
 	status:=res["status"].(map[string]interface{})
@@ -180,6 +186,7 @@ func (dp *DnsPod) Ddns(domain string,value string,sub_domain string,record_type 
 		}
 		return nil;
 	}else{
+		fmt.Printf("GetRecord2 error\r\n")
 		return errors.New(status["message"].(string))
 	}
 	return nil;
@@ -188,6 +195,7 @@ func (dp *DnsPod) Ddns(domain string,value string,sub_domain string,record_type 
 func (dp *DnsPod) Modify(domain string,value string,sub_domain string,record_type string) (error) {
 	res,err:=dp.GetRecord(domain,record_type,sub_domain);
 	if(err!=nil){
+		fmt.Printf("Modify:GetRecord error\r\n")
 		return err;
 	}
 	status:=res["status"].(map[string]interface{})
@@ -239,6 +247,7 @@ func (dp *DnsPod) Modify(domain string,value string,sub_domain string,record_typ
 		}
 		return nil;
 	}else{
+		fmt.Printf("Modify:GetRecord2 error\r\n")
 		return errors.New(status["message"].(string))
 	}
 	return nil;
