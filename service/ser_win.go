@@ -18,8 +18,8 @@ func StartWin() bool{
 		}
 		return true
 	}else{
-		if(len(param.Cmd)>0){
-			switch (param.Cmd) {
+		if len(param.Cmd)>0 {
+			switch param.Cmd {
 			case "install":
 				err:=Install();
 				if(err==nil){
@@ -30,7 +30,7 @@ func StartWin() bool{
 				return true
 			case "uninstall":
 				err:=UnInstall();
-				if(err==nil){
+				if err==nil {
 					fmt.Printf("uninstall success\r\n")
 				}else{
 					fmt.Printf("uninstall fail err:"+err.Error()+"\r\n")
@@ -57,7 +57,7 @@ func Install() error{
 	}
 	//参数带上
 	err=  winsvc.InstallService(appPath, "ddnsv6", "ddns  server",os.Args[1:]...);
-	if(err!=nil){
+	if err!=nil {
 		return err;
 	}
 	return winsvc.StartService("ddnsv6")

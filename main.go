@@ -11,13 +11,31 @@ import (
 
 func main(){
 	param.Parse()
-	if(len(param.DnsPodToken)==0&&len(param.Cmd)==0){
-		fmt.Printf("token null")
-		return ;
-	}
-	if(len(param.Domain)==0&&len(param.Cmd)==0){
-		fmt.Printf("domain null")
-		return ;
+	if len(param.Cmd)==0 {
+		if len(param.Domain) == 0 && len(param.Cmd) == 0 {
+			fmt.Printf("domain null")
+			return;
+		}
+
+		if param.DdnsType=="dnspod" {
+			if len(param.DnsPodToken) == 0  {
+				fmt.Printf("token null")
+				return;
+			}
+		}else{
+			if len(param.Email) == 0  {
+				fmt.Printf("cloudflare email null")
+				return;
+			}
+			if len(param.Apikey) == 0  {
+				fmt.Printf("cloudflare apikey null")
+				return;
+			}
+			if len(param.Zoneid) == 0  {
+				fmt.Printf("cloudflare zoneid null")
+				return;
+			}
+		}
 	}
 	fmt.Printf("dnspodtoken:%s\r\n",param.DnsPodToken)
 	fmt.Printf("domain:%s\r\n",param.Domain)
@@ -25,7 +43,7 @@ func main(){
 	fmt.Printf("iptype:%d\r\n",param.Iptype)
 
 	//运行服务
-	if(runtime.GOOS=="windows") {
+	if runtime.GOOS=="windows" {
 		service.StartWin();
 	}else {
 		//运行

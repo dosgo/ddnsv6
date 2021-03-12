@@ -1,16 +1,27 @@
 package service
 
 import (
-	"ddnsv6/dnspod"
+	"ddnsv6/ddns"
 	"ddnsv6/param"
 	"fmt"
 	"time"
 )
 
 func StartServer(){
-	dnspodClent:=dnspod.DnsPod{Token:param.DnsPodToken}
+	var ddnsClient ddns.DdnsClient;
+	if param.DdnsType=="cloudflare"{
+		ddnsClient=&ddns.Cloudflare{param.Email,param.Apikey,param.Zoneid}
+	}
+	if param.DdnsType=="dnspod"{
+		ddnsClient=&ddns.DnsPod{Token:param.DnsPodToken}
+	}
+
+	if ddnsClient==nil {
+		return ;
+	}
+
 	for {
-		dnspodClent.DdnsUpdate(param.Iptype,param.Domain,param.SubDomain);
+		ddns.DdnsUpdate(ddnsClient,param.Iptype,param.Domain,param.SubDomain);
 		time.Sleep(5*time.Minute);
 	}
 }

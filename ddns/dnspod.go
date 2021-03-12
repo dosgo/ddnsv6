@@ -1,8 +1,7 @@
-package dnspod
+package ddns
 
 import (
 	"crypto/tls"
-	"ddnsv6/iptool"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,7 +17,7 @@ type DnsPod struct {
 	Token   string
 }
 
-var  api string="https://dnsapi.cn/";
+var  dnsPodApi string="https://dnsapi.cn/";
 
 func (dp *DnsPod) GetRecord(domain string,record_type string,sub_domain string) ( map[string]interface{}, error){
 	var params=make(map[string]interface{})
@@ -43,7 +42,7 @@ func (dp *DnsPod) post(cmd string, params map[string]interface{}) ([]byte, error
 func (dp *DnsPod) postv2( cmd string, params map[string]interface{}) ([]byte, error){
 	params["format"]="json";
 	params["login_token"]=dp.Token;
-	urlStr:=api+cmd
+	urlStr:=dnsPodApi+cmd
 	uInfo,err:=url.Parse(urlStr);
 	if err!=nil {
 		return nil,err;
@@ -254,59 +253,5 @@ func (dp *DnsPod) Modify(domain string,value string,sub_domain string,record_typ
 }
 
 
-func (dp *DnsPod) DdnsUpdate(iptype int,domain string,subDomain string){
-	fmt.Printf("checkIpUpdateing....\r\n");
-	if(iptype==4||iptype==0){
-		ipv4,errv4:=iptool.GetPublicIP(4);
-		if(errv4==nil&&len(ipv4)>0){
-			fmt.Printf("find ipv4 address :%s\r\n",ipv4)
-			if(dp.CheckIP(4,ipv4,domain,subDomain)==false) {
-				err := dp.Modify(domain, ipv4, subDomain, "A");
-				fmt.Printf("err:%#v\r\n",err)
-			}else{
-				fmt.Printf("No changes\r\n")
-			}
-		}
-	}
-	if(iptype==6||iptype==0){
-		ipv6,errv6:=iptool.GetPublicIP(6);
-		if(errv6==nil&&len(ipv6)>0){
-			fmt.Printf("find ipv6 address :%s\r\n",ipv6)
-			//Modify  update
-			if(dp.CheckIP(6,ipv6,domain,subDomain)==false) {
-				err := dp.Modify(domain, ipv6, subDomain, "AAAA");
-				fmt.Printf("err:%#v\r\n", err)
-			}else{
-				fmt.Printf("No changes\r\n")
-			}
-		}
-	}
-}
 
 
-func (dp *DnsPod) CheckIP(iptype int,caddr string,domain string,subDomain string)bool{
-	var network="ip";
-	switch iptype {
-		case 4:
-		network="ip4"
-		break;
-		case 6:
-		network="ip6"
-		break;
-	}
-	addr,err:=net.ResolveIPAddr(network,subDomain+"."+domain);
-	if(err!=nil){
-		return false;
-	}
-	if(iptype==6){
-		if(strings.Index(addr.String(),":")!=-1&&caddr==addr.String()){
-			return true;
-		}
-	}
-	if(iptype==4){
-		if(strings.Index(addr.String(),":")==-1&&caddr==addr.String()){
-			return true;
-		}
-	}
-	return false;
-}
