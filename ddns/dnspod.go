@@ -56,13 +56,13 @@ func (dp *DnsPod) postv2( cmd string, params map[string]interface{}) ([]byte, er
 	}else{
 		port="443"
 	}
-	if(uInfo.Path!=""){
+	if uInfo.Path!="" {
 		path=uInfo.Path
 	}
-	if(uInfo.Query()!=nil){
+	if uInfo.Query()!=nil {
 		query="?"+uInfo.Query().Encode()
 	}
-	if(uInfo.Port()!=""){
+	if uInfo.Port()!="" {
 		port=uInfo.Port()
 	}
 
@@ -93,7 +93,7 @@ func (dp *DnsPod) postv2( cmd string, params map[string]interface{}) ([]byte, er
 		}
 		fp, err = tls.Dial("tcp", host+":"+port, tlsConf)
 	}
-	if(err!=nil){
+	if err!=nil {
 		return nil,err;
 	}
 	fp.Write([]byte(request))

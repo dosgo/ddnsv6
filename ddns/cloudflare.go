@@ -23,23 +23,27 @@ var  cloudflareApi string="https://api.cloudflare.com/client/v4/";
 
 func (dp *Cloudflare)   Post(cmd string, params map[string]interface{})  ([]byte,error) {
 
-	data,_:=json.Marshal(params)
-
+	data,err:=json.Marshal(params)
+	if err!=nil {
+		return nil,err;
+	}
 	url := cloudflareApi+cmd;
 	payload := strings.NewReader(string(data))
 
-	req, _ := http.NewRequest("POST", url, payload)
-
+	req, err := http.NewRequest("POST", url, payload)
+	if err!=nil {
+		return nil,err;
+	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("X-Auth-Email",dp.Email)
 	req.Header.Add("X-Auth-Key",dp.Apikey)
 
-	res, _ := http.DefaultClient.Do(req)
-
+	res, err := http.DefaultClient.Do(req)
+	if err!=nil {
+		return nil,err;
+	}
 	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-
-	return body,err;
+	return ioutil.ReadAll(res.Body)
 }
 
 
@@ -47,40 +51,50 @@ func (dp *Cloudflare)   Post(cmd string, params map[string]interface{})  ([]byte
 
 func (dp *Cloudflare) Get(cmd string) ([]byte,error) {
 	url := cloudflareApi+cmd;
-	req, _ := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", url, nil)
+	if err!=nil {
+		return nil,err;
+	}
 	req.Header.Add("X-Auth-Email",dp.Email)
 	req.Header.Add("X-Auth-Key",dp.Apikey)
 	req.Header.Add("Content-type", "application/json")
 
-	res, _ := http.DefaultClient.Do(req)
-
+	res, err := http.DefaultClient.Do(req)
+	if err!=nil {
+		return nil,err;
+	}
 	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-
-	return body,err;
+	return ioutil.ReadAll(res.Body)
 }
 
 
 
 func (dp *Cloudflare)   Put(cmd string, params map[string]interface{})  ([]byte,error){
 
-	data,_:=json.Marshal(params)
+	data,err:=json.Marshal(params)
+	if err!=nil {
+		return nil,err;
+	}
 
 	url := cloudflareApi+cmd;
 	payload := strings.NewReader(string(data))
 
-	req, _ := http.NewRequest("PUT", url, payload)
+	req, err := http.NewRequest("PUT", url, payload)
+	if err!=nil {
+		return nil,err;
+	}
 
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("X-Auth-Email",dp.Email)
 	req.Header.Add("X-Auth-Key",dp.Apikey)
 
-	res, _ := http.DefaultClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
+	if err!=nil {
+		return nil,err;
+	}
 
 	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-
-	return body,err;
+	return ioutil.ReadAll(res.Body)
 }
 
 
