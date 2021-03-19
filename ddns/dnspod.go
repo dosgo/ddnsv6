@@ -1,15 +1,10 @@
 package ddns
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"net"
 	"net/url"
-	"strconv"
-	"strings"
 )
 
 
@@ -19,7 +14,7 @@ type DnsPod struct {
 
 var  dnsPodApi string="https://dnsapi.cn/";
 
-func (dp *DnsPod) GetRecord(domain string,record_type string,sub_domain string) ( map[string]interface{}, error){
+func (dp *DnsPod) getRecord(domain string,record_type string,sub_domain string) ( map[string]interface{}, error){
 	var params=make(map[string]interface{})
 	params["domain"]=domain;
 	params["sub_domain"]=sub_domain;
@@ -34,111 +29,23 @@ func (dp *DnsPod) GetRecord(domain string,record_type string,sub_domain string) 
 
 
 func (dp *DnsPod) post(cmd string, params map[string]interface{}) ([]byte, error) {
-	return dp.postv2(cmd,params);
-}
-
-/*Not using the http library is to reduce the size, because it needs to run in embedded
-*/
-func (dp *DnsPod) postv2( cmd string, params map[string]interface{}) ([]byte, error){
 	params["format"]="json";
 	params["login_token"]=dp.Token;
-	urlStr:=dnsPodApi+cmd
-	uInfo,err:=url.Parse(urlStr);
-	if err!=nil {
-		return nil,err;
-	}
-	var host=uInfo.Host;
-	var path="/";
-	var query="";
-	var port="";
-	if strings.HasPrefix(urlStr,"http://"){
-		port="80"
-	}else{
-		port="443"
-	}
-	if uInfo.Path!="" {
-		path=uInfo.Path
-	}
-	if uInfo.Query()!=nil {
-		query="?"+uInfo.Query().Encode()
-	}
-	if uInfo.Port()!="" {
-		port=uInfo.Port()
-	}
-
-	// making string from $data
 	var paramStr = url.Values{}
 	for k, v := range params {
 		paramStr.Add(k,v.(string))
 	}
-
-
-	// building POST-request:
-	request:="POST "+path+query+" HTTP/1.1\n";
-	request+="Host: "+host+"\n";
-	request+="Content-type: application/x-www-form-urlencoded\n";
-	request+="Content-length: "+strconv.Itoa(len(paramStr.Encode()))+"\n";
-	request+="Connection: close\n";
-	request+="\n";
-	request+=paramStr.Encode()+"\n";
-
-
-
-	var fp net.Conn;
-	if strings.HasPrefix(urlStr,"http://"){
-		fp, err = net.Dial("tcp", host+":"+port)
-	}else{
-		tlsConf := &tls.Config{
-			InsecureSkipVerify: true,
-		}
-		fp, err = tls.Dial("tcp", host+":"+port, tlsConf)
-	}
-	if err!=nil {
-		return nil,err;
-	}
-	fp.Write([]byte(request))
-	var result []byte;
-	result,err=ioutil.ReadAll(fp)
-	if err!=nil {
-		return nil,err;
-	}else{
-		res := strings.Split(string(result),"\r\n\r\n")
-		var TransferEncoding="";
-		headers:=strings.Split(res[0],"\n");
-		for _, v:= range headers {
-		   if(strings.HasPrefix(strings.ToLower(v),strings.ToLower("Transfer-Encoding"))){
-			  _header:=strings.Split(v,":")
-			   TransferEncoding=_header[1];
-		   }
-		}
-		if strings.Index(TransferEncoding,"chunked")!=-1 {
-			bodys:=strings.Split(res[1],"\n")
-			var i=0;
-			var body="";
-			for _, v:= range bodys {
-				if(i==0||i==len(bodys)-1){
-					i++
-					continue;
-				}
-				body=body+v;
-				i++;
-			}
-			return []byte(body),err;
-
-		}else{
-			return []byte(res[1]),err;
-		}
-	}
+	return post(dnsPodApi+cmd,"",[]byte(paramStr.Encode()),nil)
 }
 
-func (dp *DnsPod) Ddns(domain string,value string,sub_domain string,record_type string) (error) {
-	res,err:=dp.GetRecord(domain,record_type,sub_domain);
-	if(err!=nil){
+func (dp *DnsPod) ddns(domain string,value string,sub_domain string,record_type string) (error) {
+	res,err:=dp.getRecord(domain,record_type,sub_domain);
+	if err!=nil {
 		fmt.Printf("GetRecord error\r\n")
 		return err;
 	}
 	status:=res["status"].(map[string]interface{})
-	if(status["code"].(string)=="1"){
+	if status["code"].(string)=="1" {
 		records:=res["records"].([]interface{})
 		var record_id="";
 		var record_line_id="";
@@ -151,11 +58,11 @@ func (dp *DnsPod) Ddns(domain string,value string,sub_domain string,record_type 
 				oldValue=recordInfo["value"].(string)
 			}
 		}
-		if(record_id==""){
+		if record_id=="" {
 			return errors.New("Record not found")
 		}
 
-		if(oldValue!=value){
+		if oldValue!=value {
 			var params=make(map[string]interface{})
 			params["domain"]=domain;
 			params["sub_domain"]=sub_domain;
@@ -192,7 +99,7 @@ func (dp *DnsPod) Ddns(domain string,value string,sub_domain string,record_type 
 }
 
 func (dp *DnsPod) Modify(domain string,value string,sub_domain string,record_type string) (error) {
-	res,err:=dp.GetRecord(domain,record_type,sub_domain);
+	res,err:=dp.getRecord(domain,record_type,sub_domain);
 	if(err!=nil){
 		fmt.Printf("Modify:GetRecord error\r\n")
 		return err;

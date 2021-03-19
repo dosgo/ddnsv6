@@ -6,7 +6,6 @@ import (
 	"ddnsv6/param"
 	"fmt"
 	"github.com/chai2010/winsvc"
-	"log"
 	"os"
 	"path/filepath"
 )
@@ -50,10 +49,10 @@ func Install() error{
 	var appPath string
 	var err error
 	if appPath, err = winsvc.GetAppPath(); err != nil {
-		log.Fatal(err)
+		fmt.Printf("err:%v\r\n",err)
 	}
 	if err := os.Chdir(filepath.Dir(appPath)); err != nil {
-		log.Fatal(err)
+		fmt.Printf("err:%v\r\n",err)
 	}
 	//参数带上
 	err=  winsvc.InstallService(appPath, "ddnsv6", "ddns  server",os.Args[1:]...);

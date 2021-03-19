@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"strings"
 )
 
 
@@ -21,86 +18,45 @@ var  cloudflareApi string="https://api.cloudflare.com/client/v4/";
 
 
 
-func (dp *Cloudflare)   Post(cmd string, params map[string]interface{})  ([]byte,error) {
-
+func (dp *Cloudflare)   post(cmd string, params map[string]interface{})  ([]byte,error) {
 	data,err:=json.Marshal(params)
 	if err!=nil {
 		return nil,err;
 	}
-	url := cloudflareApi+cmd;
-	payload := strings.NewReader(string(data))
-
-	req, err := http.NewRequest("POST", url, payload)
-	if err!=nil {
-		return nil,err;
-	}
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("X-Auth-Email",dp.Email)
-	req.Header.Add("X-Auth-Key",dp.Apikey)
-
-	res, err := http.DefaultClient.Do(req)
-	if err!=nil {
-		return nil,err;
-	}
-	defer res.Body.Close()
-	return ioutil.ReadAll(res.Body)
+	var headers=make(map[string]string)
+	headers["X-Auth-Email"]=dp.Email;
+	headers["X-Auth-Key"]=dp.Apikey;
+	return post(cloudflareApi+cmd,"application/json",data,headers)
 }
 
 
 
 
-func (dp *Cloudflare) Get(cmd string) ([]byte,error) {
-	url := cloudflareApi+cmd;
-	req, err := http.NewRequest("GET", url, nil)
-	if err!=nil {
-		return nil,err;
-	}
-	req.Header.Add("X-Auth-Email",dp.Email)
-	req.Header.Add("X-Auth-Key",dp.Apikey)
-	req.Header.Add("Content-type", "application/json")
-
-	res, err := http.DefaultClient.Do(req)
-	if err!=nil {
-		return nil,err;
-	}
-	defer res.Body.Close()
-	return ioutil.ReadAll(res.Body)
+func (dp *Cloudflare) get(cmd string) ([]byte,error) {
+	var headers=make(map[string]string)
+	headers["X-Auth-Email"]=dp.Email;
+	headers["X-Auth-Key"]=dp.Apikey;
+	headers["Content-type"]="application/json";
+	return get(cloudflareApi+cmd,headers);
 }
 
 
 
-func (dp *Cloudflare)   Put(cmd string, params map[string]interface{})  ([]byte,error){
-
+func (dp *Cloudflare)   put(cmd string, params map[string]interface{})  ([]byte,error){
 	data,err:=json.Marshal(params)
 	if err!=nil {
 		return nil,err;
 	}
-
-	url := cloudflareApi+cmd;
-	payload := strings.NewReader(string(data))
-
-	req, err := http.NewRequest("PUT", url, payload)
-	if err!=nil {
-		return nil,err;
-	}
-
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("X-Auth-Email",dp.Email)
-	req.Header.Add("X-Auth-Key",dp.Apikey)
-
-	res, err := http.DefaultClient.Do(req)
-	if err!=nil {
-		return nil,err;
-	}
-
-	defer res.Body.Close()
-	return ioutil.ReadAll(res.Body)
+	var headers=make(map[string]string)
+	headers["X-Auth-Email"]=dp.Email;
+	headers["X-Auth-Key"]=dp.Apikey;
+	return put(cloudflareApi+cmd,"application/json",data,headers)
 }
 
 
 
-func (dp *Cloudflare)  GetDomainID(domain string) string{
-	result,err:=dp.Get("zones/"+dp.Zoneid+"/dns_records?name="+domain);
+func (dp *Cloudflare)  getDomainID(domain string) string{
+	result,err:=dp.get("zones/"+dp.Zoneid+"/dns_records?name="+domain);
 	if err==nil {
 		//复用了map
 		res:= make(map[string]interface{})
@@ -124,8 +80,8 @@ func (dp *Cloudflare)  GetDomainID(domain string) string{
 	return ""
 }
 
-func (dp *Cloudflare)   Getuser() (string,error) {
-	result,err:= dp.Get("user");
+func (dp *Cloudflare)   getuser() (string,error) {
+	result,err:= dp.get("user");
 	if err!=nil {
 		return "",err;
 	}
@@ -137,7 +93,7 @@ func (dp *Cloudflare)   Getuser() (string,error) {
 }
 
 func (dp *Cloudflare)   updateDNS(domain string,ip string,_type string,ttl int) error{
-	domainid:=dp.GetDomainID(domain);
+	domainid:=dp.getDomainID(domain);
 	var params=make(map[string]interface{})
 	params["type"]=_type;
 	params["name"]=domain;
@@ -148,9 +104,9 @@ func (dp *Cloudflare)   updateDNS(domain string,ip string,_type string,ttl int) 
 	var err error
 	var result []byte
 	if domainid=="" {
-		result,err= dp.Post("zones/"+dp.Zoneid+"/dns_records",params);
+		result,err= dp.post("zones/"+dp.Zoneid+"/dns_records",params);
 	}else{
-		result,err= dp.Put("zones/"+dp.Zoneid+"/dns_records/"+domainid,params);
+		result,err= dp.put("zones/"+dp.Zoneid+"/dns_records/"+domainid,params);
 	}
 	if err!=nil {
 		return err;
