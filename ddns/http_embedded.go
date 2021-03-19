@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"crypto/tls"
+	"strconv"
 	"net"
 	"strings"
 )
@@ -45,7 +46,7 @@ func  _req(method  string,_url string,contentType string,data []byte,headers map
 	request:=method+" "+path+query+" HTTP/1.1\n";
 	request+="Host: "+host+"\n";
 	request+="Content-type: "+contentType+"\n";
-	//request+="Content-length: "+strconv.Itoa(len(data))+"\n";
+	request+="Content-length: "+strconv.Itoa(len(data))+"\n";
 	request+="Connection: close\n";
 	request+="\n";
 	request+=string(data)+"\n";
