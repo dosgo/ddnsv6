@@ -1,5 +1,5 @@
-//go:build !mipsle && !mips && !mips64 && !mips64le && !windows
-// +build !mipsle,!mips,!mips64,!mips64le,!windows
+//go:build !mipsle && !mips && !mips64 && !mips64le
+// +build !mipsle,!mips,!mips64,!mips64le
 
 package ddns
 
